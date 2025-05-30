@@ -7,13 +7,9 @@ import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/ad
 import type { Coord, TileRecord } from "./types";
 import { Rack } from "./Rack";
 
-export const Board = () => {
-           const [tiles, setTiles] = useState<TileRecord[]>([
-    { letter: 'A', value: 1, location: [3, 2] },
-            { letter: 'P',value: 3,  location: [1, 6] },
-            { letter: 'X',value: 10,  location: [10, 6] },
-    ]);
-
+export const Board = ({initialTiles}: {initialTiles: TileRecord[]}) => {
+           const [tiles, setTiles] = useState<TileRecord[]>(initialTiles);
+l
         useEffect(() => {
         return monitorForElements({
             onDrop({ source, location }) {
@@ -51,8 +47,11 @@ export const Board = () => {
 
     const squares = renderSquares(tiles)
     const rackSquares = renderRackSquares(tiles)
+
+    const isValid = isBoardValid(tiles)
     return (
         <>
+        {!isValid && <p>Invalid</p>}
         <div className="board">
             {squares}
         </div>
@@ -100,3 +99,22 @@ export const Board = () => {
             }
         return squares;
     }
+
+    function isBoardValid(tiles: TileRecord[]){
+        console.log(tiles)
+        // does each distinct column and row form a valid word
+            // find the rows of words
+                //check validity of each
+            // find the columns of words
+
+        // at least one of the newly placed tiles must be adjacent to the initial tiles
+        // so we need some separation between the tiles on the board at the start of the turn,
+            // and the tiles you are placing from your rack!!
+        return false
+    }
+
+    // on first load, we fetch the placed tile coords, and the tiles in our rack
+        // we render these onto the board and rack
+    // - note these starting board tiles cannot be moved
+    // then the tiles in the rack can be dragged onto the board
+    // we pass newTiles and startingTiles into the isBoardValid function 
