@@ -101,15 +101,43 @@ export const Board = ({initialTiles}: {initialTiles: TileRecord[]}) => {
     }
 
     function isBoardValid(tiles: TileRecord[]){
-        console.log(tiles)
+        console.log('allTiles', tiles)
+        const tilesOnTheBoard = tiles.filter(tile => tile.location[0] < 10)
         // does each distinct column and row form a valid word
             // find the rows of words
                 //check validity of each
             // find the columns of words
 
         // at least one of the newly placed tiles must be adjacent to the initial tiles
-        // so we need some separation between the tiles on the board at the start of the turn,
-            // and the tiles you are placing from your rack!!
+
+        // DONE --- - - - - - ARE ALL TILES CONNECTED
+            // check every tile for a neighbour
+            // for each tile, check the positions of all four adjcaent squares, if none have a tile in, there INVALID
+
+        // ALL NEWLY PLACED TILES MUST BE IN THE SAME ROW OR COLUMN
+            // check the fromRack tiles, do they all have either the same X or the same Y
+        let invalidTiles = []
+            
+        for(let i = 0; i<tilesOnTheBoard.length; i++){
+            const currentTile = tilesOnTheBoard[i]
+            console.log('currentTile', currentTile)
+            //now search through all other tiles, are any of them adjacent. if we have y=5, x=7
+                //i.e. we need y=5 (same as currTile) and x=6 or 8 i.e. currTile x+1 or x-1
+                //OR   we need y = currTile +-1  and x=same as currTile
+                const currTileLocation = currentTile.location
+                const currTileY = currTileLocation[0]
+                const currTileX = currTileLocation[1]
+            console.log('currTileY', currTileY)
+            console.log('currTileX', currTileX)
+            const restOfTiles = tilesOnTheBoard.filter(tile => tile.location[0] !== currTileLocation[0] || tile.location[1] !== currTileLocation[1])
+            console.log('restOfTiles', restOfTiles)
+
+            const neighbourFound = restOfTiles.find(tile => (tile.location[0] === currTileY && Math.abs(tile.location[1] - currTileX) <=1)
+             || (tile.location[1] === currTileX && Math.abs(tile.location[0] - currTileY) <=1))
+            console.log('neighbourFound', neighbourFound)
+            if(!neighbourFound) invalidTiles.push(currentTile)
+        }
+    console.log('invalidTiles',invalidTiles)
         return false
     }
 
