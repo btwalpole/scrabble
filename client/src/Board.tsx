@@ -9,7 +9,7 @@ import { Rack } from "./Rack";
 
 export const Board = ({initialTiles}: {initialTiles: TileRecord[]}) => {
            const [tiles, setTiles] = useState<TileRecord[]>(initialTiles);
-l
+              
         useEffect(() => {
         return monitorForElements({
             onDrop({ source, location }) {
@@ -39,7 +39,7 @@ l
                     tile !== undefined
                 ) {
                     // moving the tile!
-                    setTiles([{ letter: tile.letter, value: tile.value, location: destinationLocation }, ...restOfTiles]);
+                    setTiles([{ letter: tile.letter, value: tile.value, fromRack: tile.fromRack, location: destinationLocation }, ...restOfTiles]);
                 }
             },
         });
@@ -118,3 +118,5 @@ l
     // - note these starting board tiles cannot be moved
     // then the tiles in the rack can be dragged onto the board
     // we pass newTiles and startingTiles into the isBoardValid function 
+
+    // each tile needs to clearly be designated as 'from the rack' or 'new' so that it is treated differently from the tiles

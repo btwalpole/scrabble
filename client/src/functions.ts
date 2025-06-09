@@ -10,8 +10,8 @@ export function isCoord(token: unknown): token is Coord {
 	);
 }
 
-export type TileType = 'A' | 'P' | 'X';
-const tileTypes: TileType[] = ['A', 'P', 'X'];
+export type TileType = 'A' | 'B' | 'C' | 'D' | 'E'  | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N'| 'O' | 'P' | 'Q' | 'R'|'S' |'T' |'U' |'V' |'W' |'X' |'Y'| 'Z';
+const tileTypes: TileType[] = ['A' , 'B' , 'C' , 'D' , 'E'  , 'F' , 'G' , 'H' , 'I' , 'J' , 'K' , 'L' , 'M' , 'N', 'O' , 'P' , 'Q' , 'R','S' ,'T' ,'U' ,'V' ,'W' ,'X' ,'Y', 'Z'];
 
 export function isTileType(value: unknown): value is TileType {
 	return typeof value === 'string' && tileTypes.includes(value as TileType);

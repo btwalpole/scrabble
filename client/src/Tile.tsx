@@ -5,7 +5,7 @@ import { draggable } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import invariant from "tiny-invariant";
 
 export const Tile = ({ tile }: { tile: TileRecord }) => {
-    const { location, letter, value } = tile
+    const { location, letter, value ,fromRack  } = tile
     const ref = useRef(null);
     const [dragging, setDragging] = useState<boolean>(false);
 
@@ -18,6 +18,7 @@ export const Tile = ({ tile }: { tile: TileRecord }) => {
             onDragStart: () => setDragging(true),
             getInitialData: () => ({ location, letter }),
             onDrop: () => setDragging(false),
+            canDrag: () => fromRack
         });
     }, []);
 

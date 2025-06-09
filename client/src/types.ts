@@ -4,5 +4,6 @@ export type TileRecord = {
     letter: string;
     value: number;
     location: Coord;
+    fromRack: boolean;
 }
 
