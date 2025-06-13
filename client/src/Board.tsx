@@ -5,9 +5,9 @@ import {
   isCoord,
   isEqualCoord,
   isTileType,
-  getWords,
-  getTilesWithoutNeighbours,
-  getTilesInInvalidWords,
+  getNewWords,
+  areFromRackTilesPositionsValid,
+  areNewWordsValid,
 } from "./functions";
 import { Square } from "./Square";
 import { Tile } from "./Tile";
@@ -63,56 +63,82 @@ export const Board = ({ initialTiles }: { initialTiles: TileRecord[] }) => {
     });
   }, [tiles]);
 
-  const tilesWithoutNeighbours = getTilesWithoutNeighbours(tiles);
-  const allWords = getWords(tiles);
+  const tilesOnTheBoard = tiles.filter((tile) => tile.location.y < 10);
+  const rackTiles = tiles.filter((tile) => tile.location.y === 10);
+  const fromRackTiles = tilesOnTheBoard.filter((t) => t.fromRack);
+  console.log("tilesOnTheBoard", tilesOnTheBoard);
+  console.log("rackTiles", rackTiles);
 
-  // const isValid = isBoardValid(tiles)
-  // getRowWords(tiles)
-  // getColumnWords(tiles)
-  console.log("allWords", allWords);
+  // ideally we wouldn't be running any of this logic if fromRackTiles is empty.....
+  // put this all in a hook?
+  const rackTilePositionsValid =
+    fromRackTiles.length > 0
+      ? areFromRackTilesPositionsValid(fromRackTiles)
+      : true;
+  const newWords = rackTilePositionsValid ? getNewWords(tilesOnTheBoard) : []; //
+  const newWordsValid = newWords?.length > 0 && areNewWordsValid(newWords);
+  const pointsBubbleCoord = undefined;
+  const newWordsPoints = 10;
 
-  //   const invalidWords = getInvalidWords(allWords);
-  const tilesInInvalidWords = getTilesInInvalidWords(allWords);
+  //we only want to bother checking the words if rackTilePositionsValid === true
+  // but both the submit btn and renderSquares need to know about of the words
 
-  console.log("tilesInInvalidWords", tilesInInvalidWords);
-  console.log("tilesWithoutNeighbours", tilesWithoutNeighbours);
-
-  const invalidTiles = [...tilesInInvalidWords, ...tilesWithoutNeighbours];
-
-  const squares = renderSquares(tiles, invalidTiles);
-  const rackSquares = renderRackSquares(tiles);
+  const squares = renderSquares(
+    tilesOnTheBoard,
+    newWords,
+    newWordsValid,
+    newWordsPoints,
+    pointsBubbleCoord
+  );
+  const rackSquares = renderRackSquares(rackTiles);
 
   return (
     <>
       <div className="board">{squares}</div>
       <Rack>{rackSquares}</Rack>
-      {/* <p>{isValid ? "valid" : "invalid"}</p> */}
+      <p>{newWordsValid ? "valid" : "invalid"}</p>
+      {/** <btn disabled={!isBoardValid}>Submit</btn> */}
     </>
   );
 };
 
-function renderSquares(tiles: TileRecord[], invalidTiles: TileRecord[]) {
+function renderSquares(
+  tiles: TileRecord[],
+  newWords: TileRecord[][],
+  newWordsValid: boolean,
+  newWordsPoints: number,
+  pointsBubbleCoord?: Coord
+) {
   const squares = [];
   for (let row = 0; row < 10; row++) {
     for (let col = 0; col < 10; col++) {
-      const squareCoord: Coord = [row, col];
+      const squareCoord: Coord = { x: col, y: row }; //[row, col];
 
       const tile = tiles.find((tile) =>
         isEqualCoord(tile.location, squareCoord)
       );
 
-      const tileHasNoNeighbours =
-        tile &&
-        Boolean(
-          invalidTiles.find((t) => isEqualCoord(t.location, tile?.location))
-        );
+      const tileIsInValidWord =
+        tile && newWordsValid
+          ? Boolean(newWords.flat().find((t) => t.location === tile?.location))
+          : false;
 
-      // if its a from rack tile, do some extra calculations to determine if valid?
+      // const showPointsBubble = isEqualCoord(tile.location, pointsBubbleCoord)
+
+      // at this point presumably some new words have been created - are they vaild words
+      // ---- get all words on the board. filter to only words that contain fromRack tiles
+      // ---- display a lil score bubble at the start of one of these words
+      // ---- if all words valid, bubble is green, if not then red
 
       squares.push(
-        <Square tiles={tiles} location={squareCoord} key={squareCoord.join()}>
-          {/* {tile && pieceLookup[piece.type]()} */}
-          {tile && <Tile tile={tile} invalid={tileHasNoNeighbours} />}
+        <Square
+          tiles={tiles}
+          location={squareCoord}
+          key={`${squareCoord.x}-${squareCoord.y}`}
+        >
+          {/* {showPointsBubble && <PointsBubble value={newWordsPoints} valid={wordsValid} />} */}
+          {tile && <Tile tile={tile} inNewWord={tileIsInValidWord} />}
+          {/** Tile needs to optionally show a border if tile is part of valid new word */}
         </Square>
       );
     }
@@ -124,12 +150,16 @@ function renderRackSquares(tiles: TileRecord[]) {
   const squares = [];
   const row = 10;
   for (let col = 0; col < 7; col++) {
-    const squareCoord: Coord = [row, col];
+    const squareCoord: Coord = { x: col, y: row }; //[row, col];
 
     const tile = tiles.find((tile) => isEqualCoord(tile.location, squareCoord));
 
     squares.push(
-      <Square tiles={tiles} location={squareCoord} key={squareCoord.join()}>
+      <Square
+        tiles={tiles}
+        location={squareCoord}
+        key={`${squareCoord.x}-${squareCoord.y}`}
+      >
         {/* {tile && pieceLookup[piece.type]()} */}
         {tile && <Tile tile={tile} />}
       </Square>

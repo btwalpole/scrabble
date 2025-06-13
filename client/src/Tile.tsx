@@ -6,10 +6,10 @@ import invariant from "tiny-invariant";
 
 export const Tile = ({
   tile,
-  invalid = false,
+  inNewWord = false,
 }: {
   tile: TileRecord;
-  invalid?: boolean;
+  inNewWord?: boolean;
 }) => {
   const { location, letter, value, fromRack } = tile;
   const ref = useRef(null);
@@ -35,7 +35,7 @@ export const Tile = ({
       style={
         dragging
           ? { opacity: 0.4 }
-          : { border: invalid ? "1px solid red " : "none" }
+          : { border: inNewWord ? "1px solid green " : "none" }
       }
     >
       <p>{letter}</p>

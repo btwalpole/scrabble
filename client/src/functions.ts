@@ -1,14 +1,17 @@
 import type { Coord, TileRecord } from "./types";
 import { scrabbleWords } from "../euScrabbleWords";
 export function isEqualCoord(c1: Coord, c2: Coord): boolean {
-  return c1[0] === c2[0] && c1[1] === c2[1];
+  return c1.x === c2.x && c1.y === c2.y;
 }
 
 export function isCoord(token: unknown): token is Coord {
+  // check has properties x and y
+  // check value are numbers
   return (
-    Array.isArray(token) &&
-    token.length === 2 &&
-    token.every((val) => typeof val === "number")
+    Object.prototype.hasOwnProperty.call(token, "x") &&
+    Object.prototype.hasOwnProperty.call(token, "y") &&
+    Object.keys(token).length === 2 &&
+    Object.values(token).every((val) => typeof val === "number")
   );
 }
 
@@ -84,24 +87,79 @@ export function canMove(start: Coord, destination: Coord, tiles: TileRecord[]) {
 }
 
 // do it like the app and like this website  //https://playscrabble.com/play/ai
-export function isBoardValid(tiles: TileRecord[]) {
+
+export function areFromRackTilesPositionsValid(tiles: TileRecord[]) {
+  const fromRackTiles = tiles.filter((t) => t.fromRack);
+  console.log("fromRackTiles", fromRackTiles);
   // are all the fromRack tiles in the same row / column
+  const fromRackTilesAligned = areFromRackTilesAligned(fromRackTiles);
+  console.log("fromRackTilesAligned", fromRackTilesAligned);
+  if (!fromRackTilesAligned) return false;
+
   // are all the fromRack tiles next to one another - we dont actually need to check the whole board for this!
+  const fromRackTilesAdjacent = areFromRackTilesAdjacent(fromRackTiles);
+  console.log("fromRackTilesAdjacent", fromRackTilesAdjacent);
+  if (!fromRackTilesAdjacent) return false;
+
   // is at least one of the fromRack tiles adjacent to one of the existing board tiles
-  // if any of the above are not met then dont display any validity state and just stop here
+  const fromRackTilesExtendBoardTiles =
+    doFromRackTilesExtendBoardTiles(fromRackTiles);
+
+  return fromRackTilesExtendBoardTiles;
+}
+
+function areFromRackTilesAligned(fromRackTiles: TileRecord[]): boolean {
+  const firstTileY = fromRackTiles[0].location.y;
+  const firstTileX = fromRackTiles[0].location.x;
+
+  const misalignedYTiles = fromRackTiles.filter(
+    (t) => t.location.y !== firstTileY
+  );
+  const misalignedXTiles = fromRackTiles.filter(
+    (t) => t.location.x !== firstTileX
+  );
+  return misalignedYTiles.length === 0 || misalignedXTiles.length === 0;
+}
+
+function areFromRackTilesAdjacent(fromRackTiles: TileRecord[]): boolean {
+  //sort their X, check that max - min is equal to number of tiles?
+  const sortedXCoords = fromRackTiles.map((t) => t.location.x).sort();
+  const maxX = sortedXCoords[sortedXCoords.length - 1];
+  const minX = sortedXCoords[0];
+  const minMaxXDiff = maxX - minX;
+  const tilesAreXAdjacent = minMaxXDiff === sortedXCoords.length - 1;
+
+  const sortedYCoords = fromRackTiles.map((t) => t.location.y).sort();
+  const maxY = sortedYCoords[sortedYCoords.length - 1];
+  const minY = sortedYCoords[0];
+  const minMaxYDiff = maxY - minY;
+  const tilesAreYAdjacent = minMaxYDiff === sortedYCoords.length - 1;
+
+  return tilesAreXAdjacent || tilesAreYAdjacent;
+}
+
+function doFromRackTilesExtendBoardTiles(fromRackTiles: TileRecord[]): boolean {
   //
-  // at this point presumably some new words have been created - are they vaild words
+  return true;
+}
+
+export function getNewWords(tiles: TileRecord[]) {
   // ---- get all words on the board. filter to only words that contain fromRack tiles
-  // ---- display a lil score bubble at the start of one of these words
-  // ---- if all words valid, bubble is green, if not then red
+  const allWords = getWords(tiles);
+  return allWords;
+}
+
+export function areNewWordsValid(words: TileRecord[][]) {
+  const invalidWords = getInvalidWords(words);
+  return invalidWords.length === 0;
 }
 
 export function getTilesInInvalidWords(words: TileRecord[][]) {
   const invalidWords = getInvalidWords(words);
   console.log("invalidWords", invalidWords);
-  const invalidTiles = invalidWords.flat();
-  console.log("invalidTiles", invalidTiles);
-  return invalidTiles;
+  //   const invalidTiles = invalidWords.flat();
+  //   console.log("invalidTiles", invalidTiles);
+  return invalidWords;
 }
 
 function getInvalidWords(words: TileRecord[][]) {
@@ -132,7 +190,7 @@ function getRowWords(tiles: TileRecord[]) {
   let prevTile = false;
   for (let row = 0; row < 10; row++) {
     for (let col = 0; col < 10; col++) {
-      const squareCoord: Coord = [row, col];
+      const squareCoord: Coord = { x: col, y: row }; //[row, col];
       const tile = tiles.find((tile) =>
         isEqualCoord(tile.location, squareCoord)
       );
@@ -162,7 +220,7 @@ function getColumnWords(tiles: TileRecord[]) {
   let prevTile = false;
   for (let col = 0; col < 10; col++) {
     for (let row = 0; row < 10; row++) {
-      const squareCoord: Coord = [row, col];
+      const squareCoord: Coord = { x: col, y: row }; //[row, col];
       const tile = tiles.find((tile) =>
         isEqualCoord(tile.location, squareCoord)
       );
@@ -188,34 +246,35 @@ function getColumnWords(tiles: TileRecord[]) {
   return words;
 }
 
-export function getTilesWithoutNeighbours(tiles: TileRecord[]) {
-  const tilesOnTheBoard = tiles.filter((tile) => tile.location[0] < 10);
+///  if we use this is will need changing!!!! due to Coordcs chaange
+// export function getTilesWithoutNeighbours(tiles: TileRecord[]) {
+//   const tilesOnTheBoard = tiles.filter((tile) => tile.location[0] < 10);
 
-  let invalidTiles = [];
+//   let invalidTiles = [];
 
-  // checking that all tiles have a neighbour
-  for (let i = 0; i < tilesOnTheBoard.length; i++) {
-    const currentTile = tilesOnTheBoard[i];
-    const currTileLocation = currentTile.location;
-    const currTileY = currTileLocation[0];
-    const currTileX = currTileLocation[1];
-    const restOfTiles = tilesOnTheBoard.filter(
-      (tile) =>
-        tile.location[0] !== currTileLocation[0] ||
-        tile.location[1] !== currTileLocation[1]
-    );
+//   // checking that all tiles have a neighbour
+//   for (let i = 0; i < tilesOnTheBoard.length; i++) {
+//     const currentTile = tilesOnTheBoard[i];
+//     const currTileLocation = currentTile.location;
+//     const currTileY = currTileLocation[0];
+//     const currTileX = currTileLocation[1];
+//     const restOfTiles = tilesOnTheBoard.filter(
+//       (tile) =>
+//         tile.location[0] !== currTileLocation[0] ||
+//         tile.location[1] !== currTileLocation[1]
+//     );
 
-    const neighbourFound = restOfTiles.find(
-      (tile) =>
-        (tile.location[0] === currTileY &&
-          Math.abs(tile.location[1] - currTileX) <= 1) ||
-        (tile.location[1] === currTileX &&
-          Math.abs(tile.location[0] - currTileY) <= 1)
-    );
-    if (!neighbourFound) invalidTiles.push(currentTile);
-  }
-  return invalidTiles;
-}
+//     const neighbourFound = restOfTiles.find(
+//       (tile) =>
+//         (tile.location[0] === currTileY &&
+//           Math.abs(tile.location[1] - currTileX) <= 1) ||
+//         (tile.location[1] === currTileX &&
+//           Math.abs(tile.location[0] - currTileY) <= 1)
+//     );
+//     if (!neighbourFound) invalidTiles.push(currentTile);
+//   }
+//   return invalidTiles;
+// }
 
 // on first load, we fetch the placed tile coords, and the tiles in our rack
 // we render these onto the board and rack
