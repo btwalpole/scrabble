@@ -83,6 +83,19 @@ export function canMove(start: Coord, destination: Coord, tiles: TileRecord[]) {
   return true;
 }
 
+// do it like the app and like this website  //https://playscrabble.com/play/ai
+export function isBoardValid(tiles: TileRecord[]) {
+  // are all the fromRack tiles in the same row / column
+  // are all the fromRack tiles next to one another - we dont actually need to check the whole board for this!
+  // is at least one of the fromRack tiles adjacent to one of the existing board tiles
+  // if any of the above are not met then dont display any validity state and just stop here
+  //
+  // at this point presumably some new words have been created - are they vaild words
+  // ---- get all words on the board. filter to only words that contain fromRack tiles
+  // ---- display a lil score bubble at the start of one of these words
+  // ---- if all words valid, bubble is green, if not then red
+}
+
 export function getTilesInInvalidWords(words: TileRecord[][]) {
   const invalidWords = getInvalidWords(words);
   console.log("invalidWords", invalidWords);
@@ -175,8 +188,6 @@ function getColumnWords(tiles: TileRecord[]) {
   return words;
 }
 
-//THIS DOESNT WORK BECAUSE WHAT ABOUT TWO NEIGHBOURS THAT ARE DISCONNECTED FROM THE PACK
-
 export function getTilesWithoutNeighbours(tiles: TileRecord[]) {
   const tilesOnTheBoard = tiles.filter((tile) => tile.location[0] < 10);
 
@@ -215,3 +226,15 @@ export function getTilesWithoutNeighbours(tiles: TileRecord[]) {
 // each tile needs to clearly be designated as 'from the rack' or 'new' so that it is treated differently from the tiles
 
 // all newly placed leetters must be placed in the same row / column
+
+//THIS alone DOESNT WORK BECAUSE WHAT ABOUT TWO NEIGHBOURS THAT ARE DISCONNECTED FROM THE PACK
+// must be used in combination with - at least one of the fromRack tiles must be adjacent to one of the existing tiles
+//and ALL fromRack tiles must be placed in teh same column
+
+//  ACTUALLY MAYBE ITS OVERKILL TO HIHGLIGHT EVERY SINGLE INVALID TILE ON THE SCREEN?
+// APP JUST NEEDS A BOOLEAN ISVALID?
+
+// AND INSTEAD WE SHOW GREEN BORDER WHEN IT IS VALID!
+
+// 1. Realised I didnt'e need to check the entire board state for validity, in some cases can just check the tiles brought on.
+// 2. much more efficient to really think properly about all this stuff and plan it out in pseudocode first.

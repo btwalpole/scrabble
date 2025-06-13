@@ -107,6 +107,8 @@ function renderSquares(tiles: TileRecord[], invalidTiles: TileRecord[]) {
           invalidTiles.find((t) => isEqualCoord(t.location, tile?.location))
         );
 
+      // if its a from rack tile, do some extra calculations to determine if valid?
+
       squares.push(
         <Square tiles={tiles} location={squareCoord} key={squareCoord.join()}>
           {/* {tile && pieceLookup[piece.type]()} */}
